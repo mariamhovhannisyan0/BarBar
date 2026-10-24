@@ -139,7 +139,7 @@ classDiagram
     class ContextualArmenianizer {
         -morph_analyzer: ArmenianMorphology
         -glossary_repo: IGlossaryRepository
-        -protected_terms: Set~string~
+        -special_terms: Set~string~
         -embedder: Optional~LocalEmbeddingModel~
         +process_text(...) ArmenianizationResult
         +revert_token(...) string
@@ -171,7 +171,7 @@ classDiagram
 
 ### 3.2 Next.js Full-Stack Application Subsystem
 - **Session & Transcript Controller:** Manages transcript lifecycles, project folders, metadata updates, and deletion actions with confirmation modals (`FR-040`).
-- **Data Access Layer (Sequelize ORM):** Implements a singleton database connection pool for PostgreSQL in Next.js, managing transactions, schema migrations, and relational models (`User`, `TranscriptionSession`, `TranscriptionSegment`, `ArmenianizationSpan`, `GlossaryTerm`, `ProtectedTerm`, `LatencyMetric`).
+- **Data Access Layer (Sequelize ORM):** Implements a singleton database connection pool for PostgreSQL in Next.js, managing transactions, schema migrations, and relational models (`User`, `TranscriptionSession`, `TranscriptionSegment`, `ArmenianizationSpan`, `GlossaryTerm`, `SpecialTerm`, `LatencyMetric`).
 - **Export Engine:** Formats finalized transcripts server-side:
   - **TXT:** Emits UTF-8 with optional Byte Order Mark (`EF BB BF`) per `A-013`.
   - **DOCX:** Generates native Microsoft Word documents via `docx` library with embedded styles and Armenian font fallbacks (*Noto Sans Armenian*, *Sylfaen*).
@@ -192,7 +192,7 @@ classDiagram
   - Executed sequentially on finalized text segments (`FR-028`).
   - Implements regex tokenization separating foreign characters (Latin/Cyrillic scripts) and hyphenated loanwords (e.g., `meeting-ի`, `report-ը`).
   - Applies a morphological stem-suffix splitter isolating Armenian inflectional markers (dative/genitive `-ի`, ablative `-ից`, instrumental `-ով`, locative `-ում`, definite articles `-ը`, `-ն`, plural `-ներ`, `-եր`).
-  - Evaluates candidate lemmas against a **Curated Glossary** and **Protected Terms Registry** (`FR-029, FR-030`).
+  - Evaluates candidate lemmas against a **Curated Glossary** and **Special Terms Registry** (`FR-029, FR-030`).
   - Disambiguates polysemous words using surrounding n-gram context vectors.
   - Retains complete historical trace (`original_token`, `lemma`, `suffix`, `inflected_replacement`, `confidence_score`) and attaches it to the database segment record (`FR-026`).
 - **Punctuation and Text Formatter (`ArmenianPunctuationEngine`):**
@@ -295,7 +295,7 @@ erDiagram
     transcription_sessions ||--o{ latency_metrics : records
     transcription_segments ||--o{ armenianization_spans : generates
     glossary_terms }o--|| users : customizes
-    protected_terms }o--|| users : defines
+    special_terms }o--|| users : defines
 
     transcription_sessions {
         uuid id PK
@@ -344,7 +344,7 @@ erDiagram
         boolean is_system
     }
 
-    protected_terms {
+    special_terms {
         uuid id PK
         uuid user_id FK
         varchar term
@@ -446,8 +446,8 @@ CREATE TABLE glossary_terms (
 
 CREATE INDEX idx_glossary_stem ON glossary_terms(foreign_stem);
 
--- 6. Protected Terms (Strict Non-Translation)
-CREATE TABLE protected_terms (
+-- 6. Special Terms (Strict Non-Translation)
+CREATE TABLE special_terms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     term VARCHAR(128) NOT NULL,
@@ -456,7 +456,7 @@ CREATE TABLE protected_terms (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE UNIQUE INDEX idx_protected_term_user ON protected_terms(COALESCE(user_id, '00000000-0000-0000-0000-000000000000'), LOWER(term));
+CREATE UNIQUE INDEX idx_special_term_user ON special_terms(COALESCE(user_id, '00000000-0000-0000-0000-000000000000'), LOWER(term));
 
 -- 7. Diagnostic Latency Metrics (FR-021, AC-004)
 CREATE TABLE latency_metrics (
@@ -657,10 +657,10 @@ flowchart TD
     Tokenizer --> TokenLoop{"Evaluate Token"}
     
     TokenLoop -->|Armenian Script Only| PassThrough["Keep Token (Pass-through)"]
-    TokenLoop -->|Foreign / Mixed Script| ProtectedCheck{"Is in Protected Terms Registry?"}
+    TokenLoop -->|Foreign / Mixed Script| SpecialCheck{"Is in Special Terms Registry?"}
     
-    ProtectedCheck -->|Yes| ProtectedPreserve["Preserve Unchanged (FR-030)"]
-    ProtectedCheck -->|No| MorphSplit["Morphological Stem & Ending Splitter"]
+    SpecialCheck -->|Yes| SpecialPreserve["Preserve Unchanged (FR-030)"]
+    SpecialCheck -->|No| MorphSplit["Morphological Stem & Ending Splitter"]
     
     MorphSplit --> DictLookup{"Match Curated Glossary Lemma?"}
     DictLookup -->|Direct Match| Inflect["Apply Armenian Suffix Inflection Rules"]
@@ -671,7 +671,7 @@ flowchart TD
     
     Inflect --> SpanRecord["Create ArmenianizationSpan Metadata Record"]
     SpanRecord --> ReconstructedText["Reconstructed Display Text"]
-    ProtectedPreserve --> ReconstructedText
+    SpecialPreserve --> ReconstructedText
     PassThrough --> ReconstructedText
     FlagLowConf --> ReconstructedText
 ```
