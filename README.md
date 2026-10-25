@@ -123,8 +123,6 @@ BarBar/
    - `NEXT_PUBLIC_PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Միասնական URL՝ թե՛ WebSocket-ի, թե՛ API-ի համար)*
 4. Սեղմեք **Deploy**։
 
-> 🚀 **Ակտիվ Production հարթակը հասանելի է այստեղ՝** [https://bar-bar-project.vercel.app](https://bar-bar-project.vercel.app)
-
 ---
 
 ### Տարբերակ 2. Տեղային գործարկում (Local Development)
