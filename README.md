@@ -109,11 +109,10 @@ BarBar/
 #### Քայլ 3. Վեբ Հարթակի տեղակայում (Vercel)
 1. Մուտք գործեք **[vercel.com](https://vercel.com)**, սեղմեք **Add New...** → **Project** և ներմուծեք նույն GitHub ռեպոզիտորիան։
 2. Framework Preset-ը ավտոմատ կընտրվի **Next.js**։
-3. **Environment Variables** բաժնում ավելացրեք՝
+3. **Environment Variables** բաժնում ավելացրեք ընդամենը այս 3-ը՝
    - `DATABASE_URL`: `postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require` *(Neon-ի connection string-ը)*
    - `DB_SSL`: `true`
-   - `PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Render-ի backend URL-ը)*
-   - `NEXT_PUBLIC_PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Կենդանի խոսափողի WebSocket հոսքի համար)*
+   - `NEXT_PUBLIC_PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Միասնական URL՝ թե՛ WebSocket-ի, թե՛ API-ի համար)*
 4. Սեղմեք **Deploy**։
 
 ---

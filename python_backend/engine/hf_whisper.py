@@ -29,7 +29,7 @@ except Exception as e:
 
 
 class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
-    def __init__(self, model_id: str = "small", device: str = "cpu", compute_type: str = "int8"):
+    def __init__(self, model_id: str = "base", device: str = "cpu", compute_type: str = "int8"):
         self.model_id = model_id
         self.device = device
         self.compute_type = compute_type
@@ -53,7 +53,7 @@ class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
 
             seen = set()
             candidates = []
-            for item in [hf_repo_id, "small", "base", "tiny"]:
+            for item in [hf_repo_id, "base", "tiny", "small"]:
                 if item and item not in seen:
                     candidates.append(item)
                     seen.add(item)

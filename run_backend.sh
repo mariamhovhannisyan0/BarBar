@@ -24,7 +24,7 @@ fi
 rm -f ~/.cache/huggingface/hub/models--Systran--faster-whisper-*/blobs/*.incomplete 2>/dev/null || true
 
 # Pre-download Whisper model with interactive progress bar (%)
-./venv/bin/python3 download_model.py small
+./venv/bin/python3 download_model.py ${WHISPER_MODEL:-base}
 
 echo "=========================================================="
 echo "Starting Uvicorn server on http://127.0.0.1:8000 ..."

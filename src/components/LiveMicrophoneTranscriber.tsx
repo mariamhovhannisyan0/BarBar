@@ -31,7 +31,7 @@ export function LiveMicrophoneTranscriber({
   onRecordingStateChange,
   armenianizationEnabled = true,
   punctuationEnabled = true,
-  modelIdentifier = "small",
+  modelIdentifier = "base",
 }: LiveMicrophoneTranscriberProps) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");

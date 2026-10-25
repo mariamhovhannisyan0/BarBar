@@ -16,7 +16,7 @@ export function AudioFileUploader({
   onTranscriptionComplete,
   armenianizationEnabled = true,
   punctuationEnabled = true,
-  modelIdentifier = "small",
+  modelIdentifier = "base",
 }: AudioFileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);

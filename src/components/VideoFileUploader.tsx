@@ -16,7 +16,7 @@ export function VideoFileUploader({
   onTranscriptionComplete,
   armenianizationEnabled = true,
   punctuationEnabled = true,
-  modelIdentifier = "small",
+  modelIdentifier = "base",
 }: VideoFileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);

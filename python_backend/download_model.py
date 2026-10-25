@@ -13,7 +13,9 @@ MODEL_REPOS = {
 }
 
 
-def download(model_name: str = "small"):
+def download(model_name: str = None):
+    if not model_name:
+        model_name = os.environ.get("WHISPER_MODEL", "base")
     repo_id = MODEL_REPOS.get(model_name, model_name)
 
     print("\n" + "=" * 65)
@@ -51,6 +53,6 @@ def download(model_name: str = "small"):
 
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else "small"
+    target = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("WHISPER_MODEL", "base")
     download(target)
 

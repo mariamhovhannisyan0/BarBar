@@ -30,7 +30,7 @@ export default function WorkspacePage() {
   // Settings states
   const [armenianizationEnabled, setArmenianizationEnabled] = useState(true);
   const [punctuationEnabled, setPunctuationEnabled] = useState(true);
-  const [activeModel, setActiveModel] = useState("small");
+  const [activeModel, setActiveModel] = useState("base");
 
   // Playback sync
   const [playbackTime, setPlaybackTime] = useState(0);

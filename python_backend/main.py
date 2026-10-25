@@ -51,7 +51,7 @@ app.add_middleware(
 )
 
 # Global Engine Instances
-active_whisper_model = os.environ.get("WHISPER_MODEL", "small")
+active_whisper_model = os.environ.get("WHISPER_MODEL", "base")
 whisper_engine = HuggingFaceArmenianWhisperEngine(model_id=active_whisper_model)
 transformers_engine = HuggingFaceTransformersEngine()
 armenianizer = ContextualArmenianizer()
@@ -102,7 +102,7 @@ async def transcribe_media_file(
     file: UploadFile = File(...),
     armenianization: bool = Form(True),
     punctuation: bool = Form(True),
-    model_id: str = Form("small")
+    model_id: Optional[str] = Form(None)
 ):
     """Processes audio or video media file, extracts audio via FFmpeg,
     runs ASR, Armenianization, and punctuation.

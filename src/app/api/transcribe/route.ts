@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const armenianizationEnabled = formData.get("armenianization") !== "false";
     const punctuationEnabled = formData.get("punctuation") !== "false";
     const modelIdentifier =
-      (formData.get("modelId") as string) || "small";
+      (formData.get("modelId") as string) || "base";
 
     if (!file) {
       return NextResponse.json({ success: false, error: "Ֆայլը ընտրված չէ:" }, { status: 400 });
