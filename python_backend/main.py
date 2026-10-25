@@ -52,11 +52,14 @@ app.add_middleware(
 
 # Global Engine Instances
 active_whisper_model = os.environ.get("WHISPER_MODEL", "base")
-# Memory safety guard for Render Free Tier (strict 512MB RAM ceiling):
-if os.environ.get("RENDER") and active_whisper_model.lower() not in ["base", "tiny"]:
+# Memory safety guard:
+# Whisper 'small' (486MB) requires >800MB RAM and triggers Out Of Memory (OOM) on 512MB RAM tiers.
+# We restrict to 'base' (145MB) or 'tiny' (75MB) unless ALLOW_HEAVY_WHISPER=true is set.
+allow_heavy_models = os.environ.get("ALLOW_HEAVY_WHISPER", "false").lower() == "true"
+if not allow_heavy_models and active_whisper_model.lower() not in ["base", "tiny"]:
     logger.warning(
-        f"[Memory Guard] Detected Render deployment with WHISPER_MODEL='{active_whisper_model}'. "
-        f"Overriding to 'base' (145MB) to strictly prevent 512MB Out of Memory (OOM) crash."
+        f"[Memory Guard] Requested WHISPER_MODEL='{active_whisper_model}', but heavy models (>512MB RAM) "
+        f"are restricted for stability. Overriding to 'base' (145MB) to prevent Out of Memory crash."
     )
     active_whisper_model = "base"
 

@@ -39,10 +39,14 @@ class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
         self.load_hf_model(model_id, device, compute_type)
 
     def load_hf_model(self, hf_repo_id: str, device: str = "cpu", compute_type: str = "int8") -> None:
-        # Render Free Tier Memory Guard:
-        if os.environ.get("RENDER") and str(hf_repo_id).lower() not in ["base", "tiny"]:
+        # Strict Memory Guard:
+        # faster-whisper 'small' is 486MB and requires >800MB RAM, causing instant OOM on 512MB RAM limits.
+        # Restrict candidates to 'base' (145MB) and 'tiny' (75MB) unless ALLOW_HEAVY_WHISPER=true.
+        allow_heavy = os.environ.get("ALLOW_HEAVY_WHISPER", "false").lower() == "true"
+        if not allow_heavy and str(hf_repo_id).lower() not in ["base", "tiny"]:
             logger.warning(
-                f"[Memory Guard] Detected Render environment. Overriding '{hf_repo_id}' to 'base' to prevent 512MB OOM."
+                f"[Memory Guard] Model '{hf_repo_id}' requires >512MB RAM. "
+                f"Falling back safely to 'base' (145MB) to avoid Out of Memory."
             )
             hf_repo_id = "base"
 
@@ -60,7 +64,7 @@ class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
 
             seen = set()
             candidates = []
-            allowed_items = [hf_repo_id, "base", "tiny"] if os.environ.get("RENDER") else [hf_repo_id, "base", "tiny", "small"]
+            allowed_items = [hf_repo_id, "base", "tiny"] if not allow_heavy else [hf_repo_id, "small", "base", "tiny"]
             for item in allowed_items:
                 if item and item not in seen:
                     candidates.append(item)
