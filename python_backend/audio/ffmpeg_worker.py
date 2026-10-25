@@ -14,6 +14,20 @@ import subprocess
 import tempfile
 from typing import Dict, Any, Optional, Tuple
 
+# Locate FFmpeg / FFprobe dynamically or via environment
+FFMPEG_BINARY = os.environ.get("FFMPEG_PATH") or shutil.which("ffmpeg")
+FFPROBE_BINARY = os.environ.get("FFPROBE_PATH") or shutil.which("ffprobe")
+
+if not FFMPEG_BINARY:
+    try:
+        import imageio_ffmpeg
+        FFMPEG_BINARY = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        FFMPEG_BINARY = "ffmpeg"
+
+if not FFPROBE_BINARY:
+    FFPROBE_BINARY = "ffprobe"
+
 
 def probe_media_file(file_path: str) -> Dict[str, Any]:
     """Probes a media file using ffprobe.
@@ -27,7 +41,7 @@ def probe_media_file(file_path: str) -> Dict[str, Any]:
         return {"success": False, "error": "ERR_FILE_EMPTY", "message": "The selected file is empty."}
 
     ffprobe_cmd = [
-        "ffprobe",
+        FFPROBE_BINARY,
         "-v", "quiet",
         "-print_format", "json",
         "-show_format",
@@ -90,7 +104,7 @@ def extract_to_standard_wav(input_path: str, output_wav_path: Optional[str] = No
 
     # FFmpeg extraction command specified in Section 7.2
     ffmpeg_cmd = [
-        "ffmpeg",
+        FFMPEG_BINARY,
         "-y",
         "-v", "error",
         "-i", input_path,

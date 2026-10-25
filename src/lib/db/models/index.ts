@@ -279,7 +279,19 @@ LatencyMetric.belongsTo(TranscriptionSession, { foreignKey: "sessionId" });
 let _synced = false;
 export async function syncDatabase() {
   if (!_synced) {
-    await sequelize.sync();
-    _synced = true;
+    try {
+      const { ensurePostgresDatabaseExists } = await import("../sequelize");
+      await ensurePostgresDatabaseExists();
+      await sequelize.authenticate();
+      await sequelize.sync();
+      _synced = true;
+      console.log("[BarBar DB] ✓ PostgreSQL database connected and synchronized successfully.");
+    } catch (err: any) {
+      console.error(
+        `[BarBar DB] ❌ PostgreSQL connection failed: ${err.message}\n` +
+        `Please ensure PostgreSQL service is active (e.g. 'brew services start postgresql@14' or verify DATABASE_URL in .env).`
+      );
+      throw err;
+    }
   }
 }

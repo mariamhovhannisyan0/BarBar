@@ -15,6 +15,7 @@ from .morphology import split_stem_suffix, inflect_armenian_lemma
 
 # Default Curated Glossary for Armenian Technical and Everyday Terms
 DEFAULT_GLOSSARY: Dict[str, Dict[str, Any]] = {
+    "meeting": {"lemma": "հանդիպում", "category": "business", "confidence": 0.95},
     "report": {"lemma": "հաշվետվություն", "category": "business", "confidence": 0.95},
     "call": {"lemma": "զանգ", "category": "everyday", "confidence": 0.90},
     "email": {"lemma": "նամակ", "category": "technology", "confidence": 0.95},

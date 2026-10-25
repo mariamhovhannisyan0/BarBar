@@ -132,7 +132,17 @@ export function LiveMicrophoneTranscriber({
 
       // Setup WebSocket connection to backend
       const sessionId = `live-${Date.now()}`;
-      const wsUrl = `ws://127.0.0.1:8000/api/v1/stream/ws/${sessionId}`;
+      const backendBase = process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL || "http://127.0.0.1:8000";
+      let wsBase = backendBase;
+      if (wsBase.startsWith("https://")) {
+        wsBase = wsBase.replace(/^https:\/\//, "wss://");
+      } else if (wsBase.startsWith("http://")) {
+        wsBase = wsBase.replace(/^http:\/\//, "ws://");
+      } else if (!wsBase.startsWith("ws://") && !wsBase.startsWith("wss://")) {
+        wsBase = `ws://${wsBase}`;
+      }
+      wsBase = wsBase.replace(/\/+$/, "");
+      const wsUrl = `${wsBase}/api/v1/stream/ws/${sessionId}`;
 
       let wsConnected = false;
       try {

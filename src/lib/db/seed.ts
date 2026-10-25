@@ -1,6 +1,7 @@
 import { GlossaryTerm, SpecialTerm, syncDatabase } from "./models";
 
 export const INITIAL_GLOSSARY = [
+  { foreignStem: "meeting", armenianLemma: "հանդիպում", category: "business", confidence: 0.95 },
   { foreignStem: "report", armenianLemma: "հաշվետվություն", category: "business", confidence: 0.95 },
   { foreignStem: "call", armenianLemma: "զանգ", category: "everyday", confidence: 0.90 },
   { foreignStem: "email", armenianLemma: "նամակ", category: "technology", confidence: 0.95 },

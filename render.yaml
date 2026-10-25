@@ -1,0 +1,21 @@
+# ===================================================================
+# Render.com Blueprint Configuration for BarBar ASR Microservice
+# ===================================================================
+
+services:
+  - type: web
+    name: barbar-backend
+    runtime: python
+    region: frankfurt # or oregon
+    plan: starter # Starter plan recommended for 512MB-1GB RAM for Whisper Small
+    buildCommand: pip install --upgrade pip && pip install -r python_backend/requirements.txt
+    startCommand: cd python_backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: WHISPER_MODEL
+        value: small
+      - key: CORS_ORIGINS
+        value: "*"
+

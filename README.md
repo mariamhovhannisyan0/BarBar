@@ -73,18 +73,61 @@ BarBar/
 │
 ├── run_backend.sh                # Python backend-ի գործարկման ավտոմատացված script
 ├── package.json
-└── barbar.sqlite                 # Տեղային տվյալների բազա (ավտոմատ գեներացվող)
+└── .env                          # PostgreSQL և միջավայրի փոփոխականներ
 ```
 
 ---
 
 ## Գործարկման հրահանգներ (How to Run)
 
+### Տարբերակ 1. Ամպային արտադրական տեղակայում (Cloud Production: Vercel + Render + Neon)
+
+Ամբողջ համակարգը նախագծված է արտադրական ժամանակակից Cloud սերվերներում deploy լինելու համար՝
+- **Տվյալների բազա՝** [Neon](https://neon.tech) (Serverless PostgreSQL 16)
+- **ASR & NLP Backend՝** [Render](https://render.com) (Python FastAPI Web Service)
+- **Վեբ Ինտերֆեյս և Gateway՝** [Vercel](https://vercel.com) (Next.js 16)
+
+#### Քայլ 1. Տվյալների բազայի կարգավորում (Neon PostgreSQL)
+1. Գրանցվեք **[neon.tech](https://neon.tech)** հարթակում և ստեղծեք նոր նախագիծ (օրինակ՝ `barbar-db`)։
+2. Պատճենեք տրամադրված `Connection String`-ը (օր․՝ `postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require`)։
+3. Ոչինչ ավելացնել պետք չէ. համակարգի առաջին իսկ հարցումից Sequelize ORM-ը ինքնուրույն կստեղծի բոլոր աղյուսակները և կտեղադրի հայերեն բառարանը։
+
+#### Քայլ 2. Python Backend-ի տեղակայում (Render.com)
+1. Մուտք գործեք **[render.com](https://render.com)** և սեղմեք **New +** → **Web Service**։
+2. Կցեք Ձեր GitHub ռեպոզիտորիան (կամ օգտագործեք Render Blueprint-ը՝ `render.yaml`)։
+3. Սահմանեք պարամետրերը՝
+   - **Runtime:** `Python 3`
+   - **Build Command:** `pip install --upgrade pip && pip install -r python_backend/requirements.txt`
+   - **Start Command:** `cd python_backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Health Check Path:** `/`
+4. Ավելացրեք միջավայրի փոփոխականները (**Environment Variables**)՝
+   - `PYTHON_VERSION`: `3.11.9`
+   - `WHISPER_MODEL`: `small` *(կամ `base`)*
+   - `CORS_ORIGINS`: `*` *(կամ Ձեր Vercel դոմեյնը)*
+5. Սեղմեք **Deploy Web Service** և պատճենեք ստացված հղումը (օր․՝ `https://barbar-backend.onrender.com`)։
+
+#### Քայլ 3. Վեբ Հարթակի տեղակայում (Vercel)
+1. Մուտք գործեք **[vercel.com](https://vercel.com)**, սեղմեք **Add New...** → **Project** և ներմուծեք նույն GitHub ռեպոզիտորիան։
+2. Framework Preset-ը ավտոմատ կընտրվի **Next.js**։
+3. **Environment Variables** բաժնում ավելացրեք՝
+   - `DATABASE_URL`: `postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require` *(Neon-ի connection string-ը)*
+   - `DB_SSL`: `true`
+   - `PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Render-ի backend URL-ը)*
+   - `NEXT_PUBLIC_PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Կենդանի խոսափողի WebSocket հոսքի համար)*
+4. Սեղմեք **Deploy**։
+
+---
+
+### Տարբերակ 2. Տեղային գործարկում (Local Development)
+
 ### Նախապայմաններ (Prerequisites)
 
 1. **Node.js** (v18.0 կամ ավելի նոր)
 2. **Python** (v3.11, v3.12 կամ v3.13)
-3. **FFmpeg** (աուդիո/տեսանյութերի մշակման համար)
+3. **PostgreSQL** (14+ կամ 16+)
+   - **macOS (Homebrew):** `brew install postgresql@14 && brew services start postgresql@14`
+   - **Ubuntu/Debian:** `sudo apt install postgresql && sudo systemctl start postgresql`
+4. **FFmpeg** (աուդիո/տեսանյութերի մշակման համար)
    - **macOS (Homebrew):** `brew install ffmpeg`
    - **Ubuntu/Debian:** `sudo apt update && sudo apt install ffmpeg`
    - **Windows:** տեղադրել [ffmpeg.org](https://ffmpeg.org/download.html)-ից և ավելացնել PATH-ում։
@@ -117,11 +160,18 @@ npm run backend
 # 1. Տեղադրել Node.js կախվածությունները
 npm install
 
-# 2. Գործարկել development սերվերը
+# 2. Կարգավորել .env (լռելյայն արդեն նշված է PostgreSQL-ը)
+# DATABASE_URL=postgres://localhost:5432/barbar
+
+# 3. Գործարկել development սերվերը
 npm run dev
 ```
 
 Այժմ բացեք բրաուզերում՝ **[http://localhost:3000](http://localhost:3000)**:
+
+> **PostgreSQL տվյալների բազայի ինքնաշխատ ստեղծում և սինխրոնացում՝**  
+> Սերվերը գործարկվելիս ավտոմատ միանում է PostgreSQL-ին, եթե `barbar` բազան գոյություն չունի, այն ինքնաշխատ ստեղծվում է, Sequelize ORM-ը գեներացնում է բոլոր աղյուսակները (tables, foreign keys) և լրացնում նախնական հայերեն բառարանն ու հատուկ եզրույթները (initial seed)։
+
 ---
 
 ## Production Build

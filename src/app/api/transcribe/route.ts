@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     console.log(`[BarBar ASR API] Incoming request: file="${fileName}" (${(file.size / 1024).toFixed(1)} KB), mode="${mode}", model="${modelIdentifier}"`);
 
     // Check if python backend is accessible
-    const pythonBackendUrl = process.env.PYTHON_BACKEND_URL || "http://127.0.0.1:8000";
+    const pythonBackendUrl = (process.env.PYTHON_BACKEND_URL || process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
     let segmentsData: any[] = [];
     let duration = 0;
     let engineUsed = "fallback-simulation";

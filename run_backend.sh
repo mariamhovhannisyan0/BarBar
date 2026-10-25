@@ -31,5 +31,4 @@ echo "Starting Uvicorn server on http://127.0.0.1:8000 ..."
 echo "Neural ASR: ACTIVE (Press Ctrl+C to stop)"
 echo "=========================================================="
 
-# Run without --reload to avoid restarting when SQLite or temporary files change
 ./venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --log-level info
