@@ -39,6 +39,13 @@ class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
         self.load_hf_model(model_id, device, compute_type)
 
     def load_hf_model(self, hf_repo_id: str, device: str = "cpu", compute_type: str = "int8") -> None:
+        # Render Free Tier Memory Guard:
+        if os.environ.get("RENDER") and str(hf_repo_id).lower() not in ["base", "tiny"]:
+            logger.warning(
+                f"[Memory Guard] Detected Render environment. Overriding '{hf_repo_id}' to 'base' to prevent 512MB OOM."
+            )
+            hf_repo_id = "base"
+
         self.model_id = hf_repo_id
         self.device = device
         self.compute_type = compute_type
@@ -53,7 +60,8 @@ class HuggingFaceArmenianWhisperEngine(ISpeechRecognitionEngine):
 
             seen = set()
             candidates = []
-            for item in [hf_repo_id, "base", "tiny", "small"]:
+            allowed_items = [hf_repo_id, "base", "tiny"] if os.environ.get("RENDER") else [hf_repo_id, "base", "tiny", "small"]
+            for item in allowed_items:
                 if item and item not in seen:
                     candidates.append(item)
                     seen.add(item)

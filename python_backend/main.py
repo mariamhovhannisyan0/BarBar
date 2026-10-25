@@ -52,6 +52,14 @@ app.add_middleware(
 
 # Global Engine Instances
 active_whisper_model = os.environ.get("WHISPER_MODEL", "base")
+# Memory safety guard for Render Free Tier (strict 512MB RAM ceiling):
+if os.environ.get("RENDER") and active_whisper_model.lower() not in ["base", "tiny"]:
+    logger.warning(
+        f"[Memory Guard] Detected Render deployment with WHISPER_MODEL='{active_whisper_model}'. "
+        f"Overriding to 'base' (145MB) to strictly prevent 512MB Out of Memory (OOM) crash."
+    )
+    active_whisper_model = "base"
+
 whisper_engine = HuggingFaceArmenianWhisperEngine(model_id=active_whisper_model)
 transformers_engine = HuggingFaceTransformersEngine()
 armenianizer = ContextualArmenianizer()
