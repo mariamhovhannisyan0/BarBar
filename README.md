@@ -1,8 +1,16 @@
 # BarBar — Հայերեն խոսքի սղագրման համակարգ (Armenian Speech-to-Text Platform)
 
+<div align="center">
+
+[![Production Live App](https://img.shields.io/badge/🌐_Production_App-bar--bar--project.vercel.app-0070f3?style=for-the-badge&logo=vercel&logoColor=white)](https://bar-bar-project.vercel.app)
+[![Status](https://img.shields.io/badge/Status-Online_/_Live-success?style=for-the-badge)](https://bar-bar-project.vercel.app)
+
+</div>
+
 **BarBar**-ը հայերեն խոսքի սղագրման ժամանակակից, ամբողջական (full-stack) հարթակ է, որը նախատեսված է ձայնային խոսքը բարձր ճշգրտությամբ գրավոր տեքստի վերածելու համար։
 
-> **Կարգախոս՝** _Խոսքդ՝ բառ առ բառ։_
+> **Կարգախոս՝** _Խոսքդ՝ բառ առ բառ։_  
+> 🔗 **Production URL՝** [https://bar-bar-project.vercel.app](https://bar-bar-project.vercel.app)
 
 Համակարգը կառուցված է `functional-document.md` (FRS-STT-001) և `technical-document.md` (SDD-STT-001) տեխնիկական և ֆունկցիոնալ պահանջների հիման վրա՝ նուրբ, մինիմալիստական և օգտագործողի համար հարմարավետ ինտերֆեյսով (subtle & elegant UI styles)։
 
@@ -102,7 +110,7 @@ BarBar/
    - **Health Check Path:** `/`
 4. Ավելացրեք միջավայրի փոփոխականները (**Environment Variables**)՝
    - `PYTHON_VERSION`: `3.11.9`
-   - `WHISPER_MODEL`: `small` *(կամ `base`)*
+   - `WHISPER_MODEL`: `base` *(խորհուրդ է տրվում Free Tier-ի համար)*
    - `CORS_ORIGINS`: `*` *(կամ Ձեր Vercel դոմեյնը)*
 5. Սեղմեք **Deploy Web Service** և պատճենեք ստացված հղումը (օր․՝ `https://barbar-backend.onrender.com`)։
 
@@ -114,6 +122,8 @@ BarBar/
    - `DB_SSL`: `true`
    - `NEXT_PUBLIC_PYTHON_BACKEND_URL`: `https://barbar-backend.onrender.com` *(Միասնական URL՝ թե՛ WebSocket-ի, թե՛ API-ի համար)*
 4. Սեղմեք **Deploy**։
+
+> 🚀 **Ակտիվ Production հարթակը հասանելի է այստեղ՝** [https://bar-bar-project.vercel.app](https://bar-bar-project.vercel.app)
 
 ---
 
