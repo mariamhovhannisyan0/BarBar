@@ -96,7 +96,6 @@ export function splitStemSuffix(token: string): {
 } {
   const clean = token.trim();
 
-  // Explicit hyphen match: meeting-ի, report-ը
   if (clean.includes("-")) {
     const parts = clean.split("-");
     if (parts.length === 2 && /^[ա-ֆԱ-Ֆ]+$/.test(parts[1])) {
@@ -104,7 +103,6 @@ export function splitStemSuffix(token: string): {
     }
   }
 
-  // Regex patterns
   for (const pat of SUFFIX_PATTERNS) {
     const match = clean.match(pat);
     if (match && match.index && match.index > 0) {

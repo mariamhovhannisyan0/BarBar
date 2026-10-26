@@ -8,10 +8,12 @@ import {
 import { processArmenianization } from "@/lib/nlp/armenianizer";
 import { formatArmenianPunctuation } from "@/lib/nlp/punctuation";
 import { seedDatabaseIfEmpty } from "@/lib/db/seed";
+import { getSessionFromRequest } from "@/lib/auth/session";
 
 export async function POST(req: NextRequest) {
   try {
     await seedDatabaseIfEmpty();
+    const authSession = await getSessionFromRequest(req);
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -118,6 +120,7 @@ export async function POST(req: NextRequest) {
 
     // Persist session to PostgreSQL / SQLite database
     const session = await TranscriptionSession.create({
+      userId: authSession?.userId || null,
       title,
       mode: mode as any,
       status: "completed",

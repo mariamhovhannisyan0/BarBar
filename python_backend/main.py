@@ -74,7 +74,7 @@ logger.info(
     f"Active Whisper backend: {whisper_engine.engine_type} (native={whisper_engine.has_native_backend}, model={whisper_engine.model_id})"
 )
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def root_health_check():
     """Health check for Render and cloud load balancers."""
     return {

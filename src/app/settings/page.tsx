@@ -1,9 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, Sliders, Mic, FileText, Sparkles, Shield, Cpu, Save, Check } from "lucide-react";
+import {
+  Settings,
+  Mic,
+  Sparkles,
+  Cpu,
+  Save,
+  Check,
+  User,
+  Mail,
+} from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SettingsPage() {
+function SettingsContent() {
+  const { user, updateUserSettings } = useAuth();
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
   const [activeModel, setActiveModel] = useState("taruma/whisper-small-armenian");
@@ -26,24 +38,21 @@ export default function SettingsPage() {
       });
     }
 
-    // Load saved settings from localStorage
+    // Load saved settings from user profile or localStorage
     const saved = localStorage.getItem("barbar_user_settings");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.activeModel) setActiveModel(parsed.activeModel);
-        if (parsed.armenianization !== undefined) setArmenianization(parsed.armenianization);
-        if (parsed.punctuation !== undefined) setPunctuation(parsed.punctuation);
-        if (parsed.includeBom !== undefined) setIncludeBom(parsed.includeBom);
-        if (parsed.saveLiveAudio !== undefined) setSaveLiveAudio(parsed.saveLiveAudio);
-        if (parsed.pauseThreshold) setPauseThreshold(parsed.pauseThreshold);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, []);
+    const parsedLocal = saved ? JSON.parse(saved) : {};
+    const merged = { ...parsedLocal, ...(user?.settings || {}) };
 
-  const handleSave = () => {
+    if (merged.activeModel) setActiveModel(merged.activeModel);
+    if (merged.armenianization !== undefined) setArmenianization(merged.armenianization);
+    if (merged.punctuation !== undefined) setPunctuation(merged.punctuation);
+    if (merged.includeBom !== undefined) setIncludeBom(merged.includeBom);
+    if (merged.saveLiveAudio !== undefined) setSaveLiveAudio(merged.saveLiveAudio);
+    if (merged.pauseThreshold) setPauseThreshold(merged.pauseThreshold);
+    if (merged.selectedDevice) setSelectedDevice(merged.selectedDevice);
+  }, [user]);
+
+  const handleSave = async () => {
     const settings = {
       activeModel,
       armenianization,
@@ -53,7 +62,7 @@ export default function SettingsPage() {
       pauseThreshold,
       selectedDevice,
     };
-    localStorage.setItem("barbar_user_settings", JSON.stringify(settings));
+    await updateUserSettings(settings);
     setSavedNotice(true);
     setTimeout(() => setSavedNotice(false), 2000);
   };
@@ -82,6 +91,29 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-4">
+        {/* 0. Authenticated User Profile */}
+        {user && (
+          <div className="p-5 bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-center">
+                <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-zinc-100">
+                  {user.fullName}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
+                  <Mail className="w-3 h-3" />
+                  <span>{user.email}</span>
+                </p>
+              </div>
+            </div>
+            <span className="text-[11px] px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 font-medium self-start sm:self-center">
+              Անհատական հաշիվն ակտիվ է
+            </span>
+          </div>
+        )}
+
         {/* 1. Hardware & Microphone */}
         <div className="p-5 bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-subtle space-y-3">
           <h2 className="text-sm font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-2">
@@ -215,3 +247,10 @@ export default function SettingsPage() {
   );
 }
 
+export default function SettingsPage() {
+  return (
+    <ProtectedRoute sectionName="Կարգավորումներ">
+      <SettingsContent />
+    </ProtectedRoute>
+  );
+}

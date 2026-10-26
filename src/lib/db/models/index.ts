@@ -1,10 +1,45 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../sequelize";
 
+// 0. User (Authentication & Profile)
+export interface UserAttributes {
+  id: string;
+  email: string;
+  fullName: string;
+  passwordHash: string;
+  settings?: Record<string, any> | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class User
+  extends Model<UserAttributes, Optional<UserAttributes, "id" | "settings">>
+  implements UserAttributes
+{
+  declare id: string;
+  declare email: string;
+  declare fullName: string;
+  declare passwordHash: string;
+  declare settings?: Record<string, any> | null;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+}
+
+User.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    fullName: { type: DataTypes.STRING(255), allowNull: false },
+    passwordHash: { type: DataTypes.STRING(255), allowNull: false },
+    settings: { type: DataTypes.JSONB, allowNull: true, defaultValue: {} },
+  },
+  { sequelize, tableName: "users", timestamps: true }
+);
+
 // 1. TranscriptionSession
 export interface SessionAttributes {
   id: string;
-  userId?: string;
+  userId?: string | null;
   title: string;
   mode: "audio_file" | "video_file" | "live_microphone";
   status: "idle" | "preprocessing" | "transcribing" | "completed" | "failed" | "interrupted";
@@ -25,7 +60,7 @@ export class TranscriptionSession
   implements SessionAttributes
 {
   declare id: string;
-  declare userId?: string;
+  declare userId?: string | null;
   declare title: string;
   declare mode: "audio_file" | "video_file" | "live_microphone";
   declare status: "idle" | "preprocessing" | "transcribing" | "completed" | "failed" | "interrupted";
@@ -153,7 +188,7 @@ ArmenianizationSpan.init(
 // 4. GlossaryTerm
 export interface GlossaryAttributes {
   id: string;
-  userId?: string;
+  userId?: string | null;
   foreignStem: string;
   armenianLemma: string;
   category: string;
@@ -167,7 +202,7 @@ export class GlossaryTerm
   implements GlossaryAttributes
 {
   declare id: string;
-  declare userId?: string;
+  declare userId?: string | null;
   declare foreignStem: string;
   declare armenianLemma: string;
   declare category: string;
@@ -192,7 +227,7 @@ GlossaryTerm.init(
 // 5. SpecialTerm
 export interface SpecialTermAttributes {
   id: string;
-  userId?: string;
+  userId?: string | null;
   term: string;
   category: string;
   isSystem: boolean;
@@ -204,7 +239,7 @@ export class SpecialTerm
   implements SpecialTermAttributes
 {
   declare id: string;
-  declare userId?: string;
+  declare userId?: string | null;
   declare term: string;
   declare category: string;
   declare isSystem: boolean;
@@ -266,6 +301,15 @@ LatencyMetric.init(
 );
 
 // Associations
+User.hasMany(TranscriptionSession, { foreignKey: "userId", as: "sessions", onDelete: "CASCADE" });
+TranscriptionSession.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+User.hasMany(GlossaryTerm, { foreignKey: "userId", as: "glossaryTerms", onDelete: "CASCADE" });
+GlossaryTerm.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+User.hasMany(SpecialTerm, { foreignKey: "userId", as: "specialTerms", onDelete: "CASCADE" });
+SpecialTerm.belongsTo(User, { foreignKey: "userId", as: "user" });
+
 TranscriptionSession.hasMany(TranscriptionSegment, { foreignKey: "sessionId", as: "segments", onDelete: "CASCADE" });
 TranscriptionSegment.belongsTo(TranscriptionSession, { foreignKey: "sessionId" });
 
@@ -283,7 +327,11 @@ export async function syncDatabase() {
       const { ensurePostgresDatabaseExists } = await import("../sequelize");
       await ensurePostgresDatabaseExists();
       await sequelize.authenticate();
-      await sequelize.sync();
+      try {
+        await sequelize.sync({ alter: true });
+      } catch {
+        await sequelize.sync();
+      }
       _synced = true;
       console.log("[BarBar DB] ✓ PostgreSQL database connected and synchronized successfully.");
     } catch (err: any) {

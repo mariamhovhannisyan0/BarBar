@@ -111,6 +111,15 @@ async function run() {
   // Step 3: Define models and sync schema
   console.log("3. Synchronizing tables and schema...");
 
+  // User
+  const User = sequelize.define("User", {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    fullName: { type: DataTypes.STRING(255), allowNull: false },
+    passwordHash: { type: DataTypes.STRING(255), allowNull: false },
+    settings: { type: DataTypes.JSONB, allowNull: true, defaultValue: {} },
+  }, { tableName: "users", timestamps: true });
+
   // Session
   const Session = sequelize.define("TranscriptionSession", {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -185,7 +194,11 @@ async function run() {
     processingDurationMs: { type: DataTypes.FLOAT, allowNull: false },
   }, { tableName: "latency_metrics", timestamps: true, updatedAt: false, createdAt: "measuredAt" });
 
-  await sequelize.sync();
+  try {
+    await sequelize.sync({ alter: true });
+  } catch {
+    await sequelize.sync();
+  }
   console.log("   ✓ All tables created/verified successfully.");
 
   // Step 4: Seed initial terms

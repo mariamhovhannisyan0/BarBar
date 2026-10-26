@@ -86,7 +86,6 @@ export function AudioFileUploader({
     formData.append("modelId", modelIdentifier);
 
     try {
-      console.log(`[BarBar UI] Starting transcription for audio file "${selectedFile.name}" (${(selectedFile.size / 1024).toFixed(1)} KB)...`);
       setTimeout(() => {
         setStatus("transcribing");
         setProgressPercent(60);
@@ -98,24 +97,15 @@ export function AudioFileUploader({
       });
 
       const data = await res.json();
-      console.log("[BarBar UI] /api/transcribe response received:", data);
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Սղագրման սխալ");
-      }
-
-      if (data.isSimulated) {
-        console.warn(
-          "[BarBar UI] ⚠️ Note: Transcription was performed using fallback simulation phrases. " +
-          "To transcribe real speech with Whisper, ensure the Python backend is running (./run_backend.sh) and faster-whisper is installed."
-        );
       }
 
       setProgressPercent(100);
       setStatus("completed");
       onTranscriptionComplete(data.session);
     } catch (err: any) {
-      console.error("[BarBar UI] Transcription error:", err);
       setStatus("failed");
       setErrorMessage(err.message || "Ֆայլի մշակման անհաջողություն");
     }

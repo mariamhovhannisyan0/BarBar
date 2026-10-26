@@ -5,6 +5,7 @@ import {
   ArmenianizationSpan,
   syncDatabase,
 } from "@/lib/db/models";
+import { getSessionFromRequest } from "@/lib/auth/session";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -41,12 +42,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await syncDatabase();
+    const authSession = await getSessionFromRequest(req);
     const { id } = await params;
     const body = await req.json();
 
     const session = await TranscriptionSession.findByPk(id);
     if (!session) {
       return NextResponse.json({ success: false, error: "Session not found" }, { status: 404 });
+    }
+
+    if (session.userId && authSession && session.userId !== authSession.userId) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
+    if (!session.userId && authSession?.userId) {
+      session.userId = authSession.userId;
     }
 
     if (body.title !== undefined) session.title = body.title;
@@ -66,12 +76,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const authSession = await getSessionFromRequest(req);
+    if (!authSession) {
+      return NextResponse.json(
+        { success: false, error: "Անհրաժեշտ է մուտք գործել համակարգ։" },
+        { status: 401 }
+      );
+    }
+
     await syncDatabase();
     const { id } = await params;
 
     const session = await TranscriptionSession.findByPk(id);
     if (!session) {
       return NextResponse.json({ success: false, error: "Session not found" }, { status: 404 });
+    }
+
+    if (session.userId && session.userId !== authSession.userId) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     await session.destroy();
@@ -82,4 +104,3 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-

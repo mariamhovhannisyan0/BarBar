@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, Shield, Plus, Trash2, Check, Sparkles, AlertCircle } from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 
-export default function GlossaryPage() {
+function GlossaryContent() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"glossary" | "special">("glossary");
 
   // Glossary states
@@ -40,9 +43,10 @@ export default function GlossaryPage() {
   };
 
   useEffect(() => {
+    if (!user) return;
     setIsLoading(true);
     Promise.all([fetchGlossary(), fetchSpecial()]).finally(() => setIsLoading(false));
-  }, []);
+  }, [user]);
 
   const handleAddGlossary = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,5 +309,13 @@ export default function GlossaryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function GlossaryPage() {
+  return (
+    <ProtectedRoute sectionName="Բառարան">
+      <GlossaryContent />
+    </ProtectedRoute>
   );
 }

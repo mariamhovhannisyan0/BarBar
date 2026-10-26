@@ -19,8 +19,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { DeleteConfirmModal } from "@/components/DeleteConfirmModal";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
 
-export default function HistoryPage() {
+function HistoryContent() {
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,8 +57,10 @@ export default function HistoryPage() {
   };
 
   useEffect(() => {
-    fetchSessions();
-  }, [modeFilter]);
+    if (user) {
+      fetchSessions();
+    }
+  }, [modeFilter, user]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,6 +299,14 @@ export default function HistoryPage() {
         isDeleting={isDeleting}
       />
     </div>
+  );
+}
+
+export default function HistoryPage() {
+  return (
+    <ProtectedRoute sectionName="Պատմություն">
+      <HistoryContent />
+    </ProtectedRoute>
   );
 }
 

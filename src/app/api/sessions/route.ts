@@ -1,17 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TranscriptionSession, TranscriptionSegment, syncDatabase } from "@/lib/db/models";
+import { TranscriptionSession, TranscriptionSegment } from "@/lib/db/models";
 import { seedDatabaseIfEmpty } from "@/lib/db/seed";
+import { getSessionFromRequest } from "@/lib/auth/session";
 import { Op } from "sequelize";
 
 export async function GET(req: NextRequest) {
   try {
+    const authSession = await getSessionFromRequest(req);
+    if (!authSession) {
+      return NextResponse.json(
+        { success: false, error: "Անհրաժեշտ է մուտք գործել համակարգ պատմությունը դիտելու համար։" },
+        { status: 401 }
+      );
+    }
+
     await seedDatabaseIfEmpty();
 
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get("query") || "";
     const mode = searchParams.get("mode") || "";
 
-    const whereClause: any = {};
+    const whereClause: any = {
+      [Op.or]: [{ userId: authSession.userId }, { userId: null }],
+    };
+
     if (query) {
       whereClause.title = { [Op.like]: `%${query}%` };
     }
@@ -41,9 +53,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     await seedDatabaseIfEmpty();
+    const authSession = await getSessionFromRequest(req);
     const body = await req.json();
 
     const session = await TranscriptionSession.create({
+      userId: authSession?.userId || null,
       title: body.title || "Անանուն սղագրություն",
       mode: body.mode || "audio_file",
       status: body.status || "idle",
@@ -63,4 +77,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-
